@@ -1,0 +1,35 @@
+name: GitHub Actions Demo - Deploy HTML/CSS/JS
+
+# Trigger pipeline on push to main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Website to Ubuntu Server
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Copy files to server using SSH
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # Make sure destination exists
+            sudo mkdir -p /var/www/html
+            sudo chown -R ubuntu:ubuntu /var/www/html
+            # Remove old files
+            rm -rf /var/www/html/*
+            # Copy new files
+            cp -r $GITHUB_WORKSPACE/* /var/www/html/
+            echo "Deployment complete!"
